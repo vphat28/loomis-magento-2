@@ -137,7 +137,6 @@ class Loomis extends AbstractCarrier implements CarrierInterface
             $this->helper->logger()->debug('loomis inactive');
             return false;
         }
-
         /** @var Result $result */
         $result = $this->_rateResultFactory->create();
         $xMLData = $this->buildRatingRequest($request);
@@ -190,7 +189,9 @@ class Loomis extends AbstractCarrier implements CarrierInterface
         $password = $this->helper->getLoomisPassword($store);
         $username = $this->helper->getLoomisUsername($store);
         $accountNumber = $this->helper->getLoomisAccountNumber($store);
-        $originRegion = $this->helper->getProvinceFromID($request->getOrigRegionId())->getCode();
+        $pickupCity = $this->helper->getOriginCity($store);
+        $pickupPostcode = $this->helper->getOriginPostcode($store);
+        $originRegion = $this->helper->getProvince($store)->getCode();
         $xml_data = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ws="http://ws.rating.uss.transforce.ca" xmlns:xsd="http://ws.rating.uss.transforce.ca/xsd" xmlns:xsd1="http://dto.uss.transforce.ca/xsd">
    <soapenv:Header/>
    <soapenv:Body>
@@ -209,9 +210,9 @@ class Loomis extends AbstractCarrier implements CarrierInterface
                   <xsd1:reported_weight>' . $request->getPackageWeight() . '</xsd1:reported_weight>
                </xsd1:packages>
                <xsd1:pickup_address_line_1>' . 'test' . '</xsd1:pickup_address_line_1>
-               <xsd1:pickup_city>' . $request->getOrigCity() . '</xsd1:pickup_city>
+               <xsd1:pickup_city>' . $pickupCity . '</xsd1:pickup_city>
                <xsd1:pickup_name>test</xsd1:pickup_name>
-               <xsd1:pickup_postal_code>' . $request->getOrigPostcode() . '</xsd1:pickup_postal_code>
+               <xsd1:pickup_postal_code>' . $pickupPostcode . '</xsd1:pickup_postal_code>
                <xsd1:pickup_province>' . $originRegion . '</xsd1:pickup_province>
                <xsd1:reported_weight_unit>L</xsd1:reported_weight_unit>
                <xsd1:service_type>ALL</xsd1:service_type>
@@ -223,6 +224,8 @@ class Loomis extends AbstractCarrier implements CarrierInterface
       </ws:getRates>
    </soapenv:Body>
 </soapenv:Envelope>';
+
+        $this->log('xml request ' . $xml_data);
 
         return $xml_data;
     }
