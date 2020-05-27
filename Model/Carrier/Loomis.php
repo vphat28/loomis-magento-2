@@ -55,9 +55,11 @@ class Loomis extends AbstractCarrier implements CarrierInterface
 
     private function getItemByRelativeKey($item, $key)
     {
-        foreach ($item as $serviceKey => $serviceTmp) {
-            if (strpos($serviceKey, $key) !== false) {
-                return $serviceTmp;
+        if (!empty($item)) {
+            foreach ($item as $serviceKey => $serviceTmp) {
+                if (strpos($serviceKey, $key) !== false) {
+                    return $serviceTmp;
+                }
             }
         }
 
