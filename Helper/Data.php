@@ -8,6 +8,11 @@ use Magento\Store\Model\ScopeInterface;
 class Data
 {
     const LOOMIS_URI_RATING_PROD = "https://webservice.loomis-express.com/LShip/services/USSRatingService?wsdl";
+    const LOOMIS_URI_RATING_SANDBOX = "https://sandbox.loomis-express.com/axis2/services/USSRatingService?wsdl";
+    const LOOMIS_URI_SHIPPING_PROD = "https://webservice.loomis-express.com/axis2/services/USSBusinessService?wsdl";
+    const LOOMIS_URI_SHIPPING_SANDBOX = "https://sandbox.loomis-express.com/axis2/services/USSBusinessService?wsdl";
+    const LOOMIS_URI_ADDON_SANDBOX = "https://sandbox.loomis-express.com/axis2/services/USSAddonsService?wsdl";
+    const LOOMIS_URI_ADDON_PROD = "https://webservice.loomis-express.com/axis2/services/USSAddonsService?wsdl";
 
     /** @var \Loomis\Shipping\Model\Logger */
     private $logger;
@@ -37,24 +42,57 @@ class Data
         return $this->logger;
     }
 
-    public function getLoomisPassword($store)
+    public function getWeightUnit($store = null)
+    {
+        return $this->scopeConfig->getValue('general/locale/weight_unit', ScopeInterface::SCOPE_STORE, $store);
+    }
+
+    public function getLoomisPassword($store = null)
     {
         return $this->scopeConfig->getValue('carriers/loomisrate/password', ScopeInterface::SCOPE_STORE, $store);
     }
 
-    public function getLoomisUsername($store)
+    public function getLoomisUsername($store = null)
     {
         return $this->scopeConfig->getValue('carriers/loomisrate/username', ScopeInterface::SCOPE_STORE, $store);
     }
 
-    public function getLoomisAccountNumber($store)
+    public function getLoomisAccountNumber($store = null)
     {
         return $this->scopeConfig->getValue('carriers/loomisrate/account_number', ScopeInterface::SCOPE_STORE, $store);
     }
 
-    public function getRatingEndpoint()
+    public function getRatingEndpoint($store = null)
     {
-        return self::LOOMIS_URI_RATING_PROD;
+        $sandbox = $this->scopeConfig->isSetFlag('carriers/loomisrate/sandbox', ScopeInterface::SCOPE_STORE, $store);
+
+        if ($sandbox) {
+            return self::LOOMIS_URI_RATING_SANDBOX;
+        } else {
+            return self::LOOMIS_URI_RATING_PROD;
+        }
+    }
+
+    public function getShippingEndpoint($store = null)
+    {
+        $sandbox = $this->scopeConfig->isSetFlag('carriers/loomisrate/sandbox', ScopeInterface::SCOPE_STORE, $store);
+
+        if ($sandbox) {
+            return self::LOOMIS_URI_SHIPPING_SANDBOX;
+        } else {
+            return self::LOOMIS_URI_SHIPPING_PROD;
+        }
+    }
+
+    public function getAddonEndpoint($store = null)
+    {
+        $sandbox = $this->scopeConfig->isSetFlag('carriers/loomisrate/sandbox', ScopeInterface::SCOPE_STORE, $store);
+
+        if ($sandbox) {
+            return self::LOOMIS_URI_ADDON_SANDBOX;
+        } else {
+            return self::LOOMIS_URI_ADDON_PROD;
+        }
     }
 
     public function getServiceType()

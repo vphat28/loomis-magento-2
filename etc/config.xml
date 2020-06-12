@@ -4,6 +4,7 @@
         <carriers>
             <loomisrate>
                 <active>0</active>
+                <sandbox>1</sandbox>
                 <sallowspecific>0</sallowspecific>
                 <model>Loomis\Shipping\Model\Carrier\Loomis</model>
                 <name>Shipping</name>

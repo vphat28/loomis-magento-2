@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="sales_shipment">
+        <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true"
+                comment="Entity ID"/>
+        <column xsi:type="smallint" name="store_id" padding="5" unsigned="true" nullable="true" identity="false"
+                comment="Store ID"/>
+        <column xsi:type="decimal" name="total_weight" scale="4" precision="12" unsigned="false" nullable="true"
+                comment="Total Weight"/>
+        <column xsi:type="decimal" name="total_qty" scale="4" precision="12" unsigned="false" nullable="true"
+                comment="Total Qty"/>
+        <column xsi:type="smallint" name="email_sent" padding="5" unsigned="true" nullable="true" identity="false"
+                comment="Email Sent"/>
+        <column xsi:type="smallint" name="send_email" padding="5" unsigned="true" nullable="true" identity="false"
+                comment="Send Email"/>
+        <column xsi:type="int" name="order_id" padding="10" unsigned="true" nullable="false" identity="false"
+                comment="Order ID"/>
+        <column xsi:type="int" name="customer_id" padding="11" unsigned="false" nullable="true" identity="false"
+                comment="Customer ID"/>
+        <column xsi:type="int" name="shipping_address_id" padding="11" unsigned="false" nullable="true" identity="false"
+                comment="Shipping Address ID"/>
+        <column xsi:type="int" name="billing_address_id" padding="11" unsigned="false" nullable="true" identity="false"
+                comment="Billing Address ID"/>
+        <column xsi:type="int" name="shipment_status" padding="11" unsigned="false" nullable="true" identity="false"
+                comment="Shipment Status"/>
+        <column xsi:type="varchar" name="increment_id" nullable="true" length="50" comment="Increment ID"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="Updated At"/>
+        <column xsi:type="text" name="packages" nullable="true" comment="Packed Products in Packages"/>
+        <column xsi:type="mediumblob" name="shipping_label" nullable="true" comment="Shipping Label Content"/>
+        <column xsi:type="text" name="customer_note" nullable="true" comment="Customer Note"/>
+        <column xsi:type="smallint" name="customer_note_notify" padding="5" unsigned="true" nullable="true"
+                identity="false" comment="Customer Note Notify"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="SALES_SHIPMENT_ORDER_ID_SALES_ORDER_ENTITY_ID" table="sales_shipment"
+                    column="order_id" referenceTable="sales_order" referenceColumn="entity_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign" referenceId="SALES_SHIPMENT_STORE_ID_STORE_STORE_ID" table="sales_shipment"
+                    column="store_id" referenceTable="store" referenceColumn="store_id" onDelete="SET NULL"/>
+        <constraint xsi:type="unique" referenceId="SALES_SHIPMENT_INCREMENT_ID_STORE_ID">
+            <column name="increment_id"/>
+            <column name="store_id"/>
+        </constraint>
+        <index referenceId="SALES_SHIPMENT_STORE_ID" indexType="btree">
+            <column name="store_id"/>
+        </index>
+        <index referenceId="SALES_SHIPMENT_TOTAL_QTY" indexType="btree">
+            <column name="total_qty"/>
+        </index>
+        <index referenceId="SALES_SHIPMENT_ORDER_ID" indexType="btree">
+            <column name="order_id"/>
+        </index>
+        <index referenceId="SALES_SHIPMENT_CREATED_AT" indexType="btree">
+            <column name="created_at"/>
+        </index>
+        <index referenceId="SALES_SHIPMENT_UPDATED_AT" indexType="btree">
+            <column name="updated_at"/>
+        </index>
+        <index referenceId="SALES_SHIPMENT_SEND_EMAIL" indexType="btree">
+            <column name="send_email"/>
+        </index>
+        <index referenceId="SALES_SHIPMENT_EMAIL_SENT" indexType="btree">
+            <column name="email_sent"/>
+        </index>
+    </table>
+</schema>
