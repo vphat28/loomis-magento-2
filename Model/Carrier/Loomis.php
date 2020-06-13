@@ -52,6 +52,21 @@ class Loomis extends AbstractCarrierOnline implements CarrierInterface
         return $this;
     }
 
+    /**
+     * Return container types of carrier
+     *
+     * @param \Magento\Framework\DataObject|null $params
+     * @return array
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
+    public function getContainerTypes(\Magento\Framework\DataObject $params = null)
+    {
+        return [
+            'normal_package' => 'Normal Package',
+            'insurance_package' => 'Insurance Package',
+        ];
+    }
+
     public function canCollectRates()
     {
         return true;
@@ -388,6 +403,13 @@ class Loomis extends AbstractCarrierOnline implements CarrierInterface
         return $result;
     }
 
+    public function getDeliveryConfirmationTypes(?DataObject $params = NULL)
+    {
+        $types = [];
+
+        return $types;
+    }
+
     /**
      * @param Request $request
      * @return string
@@ -395,19 +417,22 @@ class Loomis extends AbstractCarrierOnline implements CarrierInterface
     private function buildShipmentRequest(Request $request)
     {
         $orderIncrementId = $request->getOrderShipment()->getOrder()->getIncrementId();
+        $packageParams = $request->getData('package_params');
         $packages = $request->getData('packages');
-        $weightUnit = $request->getData('weight_units') === 'POUND' ? 'L' : 'K';
-        $dimensionUnits = $request->getData('dimension_units') === 'INCH' ? 'I' : 'M';
+        $containerType = $packageParams->getData('container');
+        $weightUnit = $packageParams->getData('weight_units') === 'POUND' ? 'L' : 'K';
+
+        if ($containerType == 'insurance_package' && (float)$packageParams->getData('customs_value') < 500) {
+            $customValue = 500;
+        } else {
+            $customValue = $packageParams->getData('custom_value');
+        }
+
+        $dimensionUnits = $packageParams->getData('dimension_units') === 'INCH' ? 'I' : 'M';
         $date = date('Ymd');
         $serviceType = substr($request->getShippingMethod(), strpos($request->getShippingMethod(), '_') + 1);
         $store = $request->getOrderShipment()->getStore();
-        $configuredWeightUnit = $this->helper->getWeightUnit($store);
 
-        if ($configuredWeightUnit === 'lbs') {
-            $weightUnit = 'L';
-        } else if ($configuredWeightUnit === 'kgs') {
-            $weightUnit = 'K';
-        }
         $deliveryAddress = $request->getRecipientAddressStreet();
         $xml_data = '<?xml version="1.0" encoding="UTF-8"?>
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ws="http://ws.business.uss.transforce.ca" xmlns:xsd="http://ws.business.uss.transforce.ca/xsd" xmlns:xsd1="http://dto.uss.transforce.ca/xsd">
@@ -442,7 +467,12 @@ class Loomis extends AbstractCarrierOnline implements CarrierInterface
                <xsd1:pickup_postal_code>' .  $request->getShipperAddressPostalCode() .'</xsd1:pickup_postal_code>
                <xsd1:pickup_province>' .  $request->getShipperAddressStateOrProvinceCode() .'</xsd1:pickup_province>
                <xsd1:reported_weight_unit>'. $weightUnit .'</xsd1:reported_weight_unit>
-               <xsd1:service_type>' .  $serviceType .'</xsd1:service_type>';
+               <xsd1:service_type>' .  $serviceType .'</xsd1:service_type>
+              <xsd1:shipment_info_num>
+                  <xsd1:name>declared_value</xsd1:name>
+                  <xsd1:value>'. $customValue .'</xsd1:value>
+               </xsd1:shipment_info_num>       
+               ';
         foreach ($packages as $package) {
             $params = $package['params'];
             $xml_data .= '
