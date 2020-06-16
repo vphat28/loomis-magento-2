@@ -397,6 +397,9 @@ class Loomis extends AbstractCarrierOnline implements CarrierInterface
             foreach ($rateArray as $rate) {
                 $method = $this->createResultMethod($rate);
                 $result->append($method);
+                $rate['insurance'] = true;
+                $method = $this->createResultMethod($rate);
+                $result->append($method);
             }
         }
 
@@ -428,9 +431,15 @@ class Loomis extends AbstractCarrierOnline implements CarrierInterface
             $customValue = $packageParams->getData('custom_value');
         }
 
+        if (!empty($packageParams->getData('customs_value'))) {
+            $customValue = $packageParams->getData('customs_value');
+        }
+
         $dimensionUnits = $packageParams->getData('dimension_units') === 'INCH' ? 'I' : 'M';
         $date = date('Ymd');
-        $serviceType = substr($request->getShippingMethod(), strpos($request->getShippingMethod(), '_') + 1);
+        $methodCode = explode('_', $request->getShippingMethod());
+        $serviceType = $methodCode[1];
+
         $store = $request->getOrderShipment()->getStore();
 
         $deliveryAddress = $request->getRecipientAddressStreet();
@@ -596,8 +605,13 @@ class Loomis extends AbstractCarrierOnline implements CarrierInterface
         @$method->setData('carrier', $this->getCarrierCode());
         @$method->setData('carrier_title', $rate['service_name']);
 
-        @$method->setData('method', $rate['service_code']);
-        @$method->setData('method_title', $this->getConfigData('name'));
+        if (isset($rate['insurance'])) {
+            @$method->setData('method', $rate['service_code'] . '_insuranceoption');
+            @$method->setData('method_title', $this->getConfigData('name') . ' + ' . __('Insurance'));
+        } else {
+            @$method->setData('method', $rate['service_code']);
+            @$method->setData('method_title', $this->getConfigData('name'));
+        }
 
         @$method->setData('price', $rate['total_price']);
         @$method->setData('cost', $rate['total_price']);
