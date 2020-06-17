@@ -459,7 +459,7 @@ class Loomis extends AbstractCarrierOnline implements CarrierInterface
                <xsd1:delivery_address_line_3/>
                <xsd1:delivery_city>' .  $request->getRecipientAddressCity() .'</xsd1:delivery_city>
                <xsd1:delivery_country>' .  $request->getRecipientAddressCountryCode() .'</xsd1:delivery_country>
-               <xsd1:delivery_email/>
+               <xsd1:delivery_email>'. $request->getData('recipient_email') .'</xsd1:delivery_email>
                <xsd1:delivery_extension/>
                <xsd1:delivery_name>' .  $request->getRecipientContactPersonName() .'</xsd1:delivery_name>
                <xsd1:delivery_phone>' .  $request->getRecipientContactPhoneNumber() .'</xsd1:delivery_phone>
