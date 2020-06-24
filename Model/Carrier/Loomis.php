@@ -110,6 +110,37 @@ class Loomis extends AbstractCarrierOnline implements CarrierInterface
         $this->helper->logger()->debug(__METHOD__ . __LINE__  . ' -serviceresponse ' . print_r($servicesArray, true));
 
         if (isset($servicesArray[0]['ax23pin'])) {
+            $progress = [];
+            if (isset($servicesArray[0]['ax23events'])) {
+
+                foreach ($servicesArray[0]['ax23events'] as $event) {
+                    $newProgress = [];
+                    $localDateTime = explode(' ', $event['ax23local_date_time']);
+                    $newProgress['deliverydate'] = $localDateTime[0];
+                    $newProgress['deliverytime'] = $localDateTime[1];
+                    $newProgress['deliverylocation'] = $localDateTime[1];
+                    $newProgress['activity'] = $event['ax23code_description_en'];
+                    $address = [];
+
+                    foreach (
+                        [
+                            'ax23address_line_1',
+                            'ax23address_line_2',
+                            'ax23address_line_3',
+                            'ax23city',
+                            'ax23postal_code',
+                            'ax23province',
+                            'ax23country',
+                        ] as $type) {
+                        if (!empty($event["ax23address"][$type])) {
+                            $address[] = $event["ax23address"][$type];
+                        }
+                    }
+                    $newProgress['deliverylocation'] = implode(', ', $address);
+                    $progress[] = $newProgress;
+                }
+            }
+
             // success, now return tracking info to view
             $data = $servicesArray[0];
             $track = new DataObject();
@@ -127,6 +158,8 @@ class Loomis extends AbstractCarrierOnline implements CarrierInterface
              */
             $track->setData('status', $data['ax23delivered'] === 'false' ?  __('Undelivered') : __('Delivered'));
             $track->setData('signed_by', $data['ax23signed_by']);
+
+            $track->setData('progressdetail', $progress);
             return $track;
         }
     }
