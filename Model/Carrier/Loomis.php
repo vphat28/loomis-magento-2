@@ -145,17 +145,7 @@ class Loomis extends AbstractCarrierOnline implements CarrierInterface
             $data = $servicesArray[0];
             $track = new DataObject();
             $track->setData('tracking', $data['ax23pin']);
-//            $track->setData('url', $data['ax23tracking_url_en']);
-            /*
-             * $fields = [
-    'Status' => 'getStatus',
-    'Signed by' => 'getSignedby',
-    'Delivered to' => 'getDeliveryLocation',
-    'Shipped or billed on' => 'getShippedDate',
-    'Service Type' => 'getService',
-    'Weight' => 'getWeight',
-];
-             */
+
             $track->setData('status', $data['ax23delivered'] === 'false' ?  __('Undelivered') : __('Delivered'));
             $track->setData('signed_by', $data['ax23signed_by']);
 
@@ -324,7 +314,6 @@ class Loomis extends AbstractCarrierOnline implements CarrierInterface
 
             $this->log(__METHOD__ . __LINE__  . ' -service item ' . print_r($service, true));
             $serviceCode = $this->getItemByRelativeKey($service, 'shipment');
-            $deliverydate = $this->getItemByRelativeKey($serviceCode, 'estimated_delivery_date');
             $shipmentInfo = $this->getItemByRelativeKey($serviceCode, 'shipment_info_num');
 
             if (empty($shipmentInfo)) {
@@ -341,8 +330,6 @@ class Loomis extends AbstractCarrierOnline implements CarrierInterface
                 }
             }
 
-            $on_min_date = date(self::DATE_FORMAT , strtotime($deliverydate));
-            $on_max_date = date(self::DATE_FORMAT , strtotime($deliverydate));
 
             $serviceType = false;
 
@@ -352,15 +339,13 @@ class Loomis extends AbstractCarrierOnline implements CarrierInterface
 
             $_referenceSerivceLoomisArray = $this->helper->getServiceType();
 
-            if( intval($cost) > 0 && isset($_referenceSerivceLoomisArray[$serviceType])) {
+            if(isset($_referenceSerivceLoomisArray[$serviceType])) {
                 //$serviceRateArray = array(
                 $mergeArray = array(
                     'service_name' => $_referenceSerivceLoomisArray[$serviceType],
                     'service_code' => 'loomis_'. $serviceType,
                     'total_price' => $cost,
                     'currency' => 'CAD',
-                    'min_delivery_date' => $on_min_date,
-                    'max_delivery_date' => $on_max_date
                 );
 
                 array_push($rateArray , $mergeArray);
