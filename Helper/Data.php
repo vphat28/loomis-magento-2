@@ -7,12 +7,12 @@ use Magento\Store\Model\ScopeInterface;
 
 class Data
 {
-    const LOOMIS_URI_RATING_PROD = "https://webservice.loomis-express.com/LShip/services/USSRatingService?wsdl";
     const LOOMIS_URI_RATING_SANDBOX = "https://sandbox.loomis-express.com/axis2/services/USSRatingService?wsdl";
-    const LOOMIS_URI_SHIPPING_PROD = "https://webservice.loomis-express.com/axis2/services/USSBusinessService?wsdl";
     const LOOMIS_URI_SHIPPING_SANDBOX = "https://sandbox.loomis-express.com/axis2/services/USSBusinessService?wsdl";
     const LOOMIS_URI_ADDON_SANDBOX = "https://sandbox.loomis-express.com/axis2/services/USSAddonsService?wsdl";
-    const LOOMIS_URI_ADDON_PROD = "https://webservice.loomis-express.com/axis2/services/USSAddonsService?wsdl";
+    const LOOMIS_URI_RATING_PROD = "https://webservice.loomis-express.com/LShip/services/USSRatingService?wsdl";
+    const LOOMIS_URI_SHIPPING_PROD = "https://webservice.loomis-express.com/LShip/services/USSBusinessService?wsdl";
+    const LOOMIS_URI_ADDON_PROD = "https://webservice.loomis-express.com/LShip/services/USSAddonsService?wsdl";
 
     /** @var \Loomis\Shipping\Model\Logger */
     private $logger;
