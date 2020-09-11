@@ -12,75 +12,15 @@ if(!$block->checkIsLoomisShipment()) {
         <span class="title"><?= /* @escapeNotVerified */ __('Loomis Shipment Options') ?></span>
     </div>
     <div class="admin__page-section-item">
-
-        <? foreach ($block->getAvailableOptions() as $option): ?>
-
-            <? if ($option->ID == 'SpecialHandling' || $option->ID == 'ExpressCheque') {
-                continue;
-            } ?>
-
-            <div class="admin__field">
-                <label class="admin__field-label" for="<?= $option->ID ?>">
-                    <span><?= __($option->Description) ?></span>
-                </label>
-                <div class="admin__field-control">
-
-                <?if($option->ValueType == 'Decimal'):?>
-                    <input class="admin__control-text" type="text" name="shipment[purolator][<?= $option->ID ?>]" maxlength="255">
-                <?else:?>
-                    <select class="admin__control-select" name="shipment[purolator][<?= $option->ID ?>]" id="<?= $option->ID ?>">
-                        <? if (!empty($option->PossibleValues) && !empty($option->PossibleValues->OptionValue)): ?>
-                            <option data-title="Select" value="0">Select</option>
-                            <? foreach ($option->PossibleValues->OptionValue as $values) : ?>
-                            <option data-title="Yes" value="<?= $values->Value ?>"><?= $values->Description ?></option>
-                            <? endforeach; ?>
-                        <? endif; ?>
-                    </select>
-                <?endif;?>
-                </div>
-            </div>
-
-        <? endforeach; ?>
+      <table width="100%">
+        <tr>
+          <td>Shipment Cost centre</td>
+          <td class="admin__field-option"><input type="text" name="reference_loomis_1" /></td>
+        </tr>
+        <tr>
+          <td>Shipment Reference</td>
+          <td class="admin__field-option"><input type="text" name="reference_loomis_2" /></td>
+        </tr>
+      </table>
     </div>
 </section>
-<script>
-    require([
-        "jquery",
-        "Magento_Ui/js/modal/alert",
-        "prototype"
-    ], function(jQuery, alert){
-
-//<![CDATA[
-
-        jQuery( document ).ready(function() {
-
-            jQuery('#special_handling').change(function () {
-
-                if(jQuery('#special_handling').val() == 'FALSE' || jQuery('#special_handling').val() == '0') {
-                    jQuery('#special_handling_type').parent().parent().hide();
-                }
-
-                if(jQuery('#special_handling').val() == 'TRUE') {
-                    jQuery('#special_handling_type').parent().parent().show();
-                }
-            });
-
-            jQuery('#DangerousGoods').change(function () {
-
-                if(jQuery('#DangerousGoods').val() == 'false' || jQuery('#DangerousGoods').val() == '0') {
-                    jQuery('#DangerousGoodsMode').parent().parent().hide();
-                    jQuery('#DangerousGoodsClass').parent().parent().hide();
-                    jQuery('#DeclaredValue').parent().parent().hide();
-                }
-
-                if(jQuery('#DangerousGoods').val() == 'true') {
-                    jQuery('#DangerousGoodsMode').parent().parent().show();
-                    jQuery('#DangerousGoodsClass').parent().parent().show();
-                    jQuery('#DeclaredValue').parent().parent().show();
-                }
-            });
-        });
-//]]>
-
-    });
-</script>

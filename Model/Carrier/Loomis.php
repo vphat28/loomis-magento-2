@@ -457,6 +457,9 @@ class Loomis extends AbstractCarrierOnline implements CarrierInterface
         $date = date('Ymd');
         $methodCode = explode('_', $request->getShippingMethod());
         $serviceType = $methodCode[1];
+		$reference1 = filter_input(INPUT_POST, 'reference_loomis_1', FILTER_SANITIZE_STRING);
+		$reference2 = filter_input(INPUT_POST, 'reference_loomis_2', FILTER_SANITIZE_STRING);
+		$reference3 = filter_input(INPUT_POST, 'reference_loomis_3', FILTER_SANITIZE_STRING);
 
         $store = $request->getOrderShipment()->getStore();
 
@@ -498,7 +501,15 @@ class Loomis extends AbstractCarrierOnline implements CarrierInterface
               <xsd1:shipment_info_num>
                   <xsd1:name>declared_value</xsd1:name>
                   <xsd1:value>'. $customValue .'</xsd1:value>
-               </xsd1:shipment_info_num>       
+               </xsd1:shipment_info_num>      
+               <xsd1:shipment_info_str>
+                  <xsd1:name>cost_centre</xsd1:name>
+                  <xsd1:value>'. $reference1 .'</xsd1:value>
+               </xsd1:shipment_info_str> 
+               <xsd1:shipment_info_str>
+                  <xsd1:name>reference</xsd1:name>
+                  <xsd1:value>'. $reference2 .'</xsd1:value>
+               </xsd1:shipment_info_str>    
                ';
         foreach ($packages as $package) {
             $params = $package['params'];
