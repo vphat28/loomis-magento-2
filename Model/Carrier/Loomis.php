@@ -539,6 +539,10 @@ class Loomis extends AbstractCarrierOnline implements CarrierInterface
                      <xsd1:name>REFERENCE</xsd1:name>
                      <xsd1:value>' . $orderIncrementId . '</xsd1:value>
                   </xsd1:package_info_str>
+                  <xsd1:package_info_str>
+                     <xsd1:name>ORDER_NUM</xsd1:name>
+                     <xsd1:value>' . $orderIncrementId . '</xsd1:value>
+                  </xsd1:package_info_str>
                   <xsd1:reported_weight>' . $params['weight'] . '</xsd1:reported_weight>
                </xsd1:packages>';
         }
