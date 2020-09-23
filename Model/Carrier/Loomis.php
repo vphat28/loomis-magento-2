@@ -336,7 +336,7 @@ class Loomis extends AbstractCarrierOnline implements CarrierInterface
         $request = [];
         $i = 0;
 
-        if (isset($shipment["ax27id"])) {
+        if (isset($shipment['ax27packages']["ax27id"])) {
             $shipment['ax27packages'] = [$shipment['ax27packages']];
         }
 
