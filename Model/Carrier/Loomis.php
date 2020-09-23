@@ -3,6 +3,7 @@
 namespace Loomis\Shipping\Model\Carrier;
 
 use Magento\Framework\DataObject;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Xml\Security;
 use Magento\Quote\Model\Quote\Address\RateRequest;
 use Magento\Shipping\Model\Carrier\AbstractCarrierOnline;
@@ -178,6 +179,56 @@ class Loomis extends AbstractCarrierOnline implements CarrierInterface
     {
         $this->helper->logger()->debug($message);
     }
+
+    /**
+     * Do request to shipment
+     *
+     * @param Request $request
+     *
+     * @return \Magento\Framework\DataObject
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function requestToShipment( $request ) {
+        $packages = $request->getPackages();
+        if ( ! is_array( $packages ) || ! $packages ) {
+            throw new LocalizedException( __( 'No packages for request' ) );
+        }
+        if ( $request->getStoreId() != null ) {
+            $this->setStore( $request->getStoreId() );
+        }
+        $data = [];
+        foreach ( $packages as $packageId => $package ) {
+        }
+        $request->setPackageId($packageId);
+        $request->setPackagingType($package['params']['container']);
+        $request->setPackageWeight($package['params']['weight']);
+        $request->setPackageParams(new \Magento\Framework\DataObject($package['params']));
+        $request->setPackageItems($package['items']);
+        $request->setPackageItems( $package['items'] );
+        $result = $this->_doShipmentRequest( $request );
+
+        if ( $result->hasErrors() ) {
+            $this->rollBack( $data );
+        } else {
+            foreach($result->getData('loomis_packages') as $loomisPackage) {
+                $data[] = [
+                    'tracking_number' => $loomisPackage->getTrackingNumber(),
+                    'label_content'   => $loomisPackage->getShippingLabelContent(),
+                ];
+            }
+        }
+        if ( ! isset( $isFirstRequest ) ) {
+            $request->setMasterTrackingId( $loomisPackage->getTrackingNumber() );
+        }
+
+        $response = new \Magento\Framework\DataObject( [ 'info' => $data ] );
+        if ( $result->getErrors() ) {
+            $response->setErrors( $result->getErrors() );
+        }
+
+        return $response;
+    }
+
     /**
      * Do shipment request to carrier web service, obtain Print Shipping Labels and process errors in response
      *
@@ -207,18 +258,22 @@ class Loomis extends AbstractCarrierOnline implements CarrierInterface
 
         }
 
-        if (isset($servicesArray[0]['ax27shipment'])) {
+        $loomisPackages = [];
+
+        if (is_array($servicesArray) && count($servicesArray) > 0) {
+            $loomisPackages = $this->_sendShipmentAcceptRequest($servicesArray[0]["ax27shipment"]);
             $servicesArray = $servicesArray[0]['ax27shipment'];
         } else {
             $result->setErrors($e->getMessage());
         }
 
-        $this->_debug($response);
+        //$this->_debug($response);
 
         if ($result->hasErrors() || empty($response)) {
             return $result;
         } else {
-            return $this->_sendShipmentAcceptRequest($servicesArray);
+            $result->setData('loomis_packages', $loomisPackages);
+            return $result;
         }
     }
 
@@ -249,7 +304,7 @@ class Loomis extends AbstractCarrierOnline implements CarrierInterface
         $xml = $this->buildLabelXML($loomisShipmentId);
         $response = $this->curlRequest($this->helper->getShippingEndpoint(), $xml);
 
-        $this->log('create label api response' . $response);
+        //$this->log('create label api response' . $response);
 
         $response = preg_replace("/(<\/?)(\w+):([^>]*>)/", "$1$2$3", $response);
         $this->helper->logger()->debug(__METHOD__ . " APi response ". print_r($response,1));
@@ -259,36 +314,48 @@ class Loomis extends AbstractCarrierOnline implements CarrierInterface
 
         $servicesArray = json_decode(json_encode((array)$body), TRUE);
         $this->helper->logger()->debug(__METHOD__ . __LINE__  . ' -serviceresponse ' . print_r($servicesArray, true));
+        $pdfContent = [];
 
-        if (isset($servicesArray[0]['ax25label'])) {
-            return $servicesArray[0]['ax25label'];
+        if (!empty($servicesArray) && is_array($servicesArray)) {
+            foreach ($servicesArray as $service) {
+                $pdfContent[] = $service['ax25label'];
+            }
+        }
+
+        if (!empty($pdfContent)) {
+            return $pdfContent;
         }
 
         return '';
     }
 
-    public function _sendShipmentAcceptRequest($servicesArray)
+    public function _sendShipmentAcceptRequest($shipment)
     {
-        $result = new \Magento\Framework\DataObject();
+        $trackingNumber = (string)$shipment['ax27id'];
+        $shippingLabelContent = $this->getLabelContent($trackingNumber);
+        $request = [];
+        $i = 0;
 
-        if (isset($servicesArray['ax27id'])) {
-            $trackingNumber = '';
+        if (isset($shipment["ax27id"])) {
+            $shipment['ax27packages'] = [$shipment['ax27packages']];
+        }
+
+        foreach ($shipment['ax27packages'] as $package) {
+            $result = new \Magento\Framework\DataObject();
             $SIN = '';
-            foreach ($servicesArray["ax27shipment_info_str"] as $info) {
-                if ($info['ax27name'] === "SIN") {
+            foreach ($package["ax27package_info_str"] as $info) {
+                if ($info['ax27name'] === "PIN") {
                     $SIN = $info['ax27value'];
                 }
             }
-
-            $trackingNumber = (string)$servicesArray['ax27id'];
-            $shippingLabelContent = $this->getLabelContent($trackingNumber);
             // phpcs:ignore Magento2.Functions.DiscouragedFunction
-            $result->setShippingLabelContent(base64_decode($shippingLabelContent));
+            $result->setShippingLabelContent(base64_decode($shippingLabelContent[$i]));
             $result->setTrackingNumber($SIN);
-        } else {
-            $result->setErrors((string)__('Can not create shipment. Please contact developer'));
+            $request[] = $result;
+            $i++;
         }
-        return $result;
+
+        return $request;
     }
 
     /**
